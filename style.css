@@ -1,0 +1,210 @@
+body {
+    font-family: 'Roboto', sans-serif;
+  }
+  
+  .events {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .event-card {
+    width: 320px;
+    height: 500px;
+    margin: 10px;
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .event-end-date {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin-bottom: 0.25rem;
+  }
+  
+  .event-image-container {
+    flex: 0 0 150px;
+    margin-bottom: 10px;
+  }
+  
+  .event-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+  
+  .event-details {
+    width: 100%;
+  }
+  
+  .event-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #de411b;
+  }
+  
+  .event-description {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+  }
+  
+  .event-date,
+  .event-location {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin-bottom: 0.25rem;
+  }
+  
+  #page-header {
+    background-color: #fff;
+    position: sticky;
+    top: 0;
+  }
+  
+  .link-item {
+    color: #de411b;
+  }
+  
+  .logo {
+    height: 50px;
+    padding: 6px;
+  }
+  
+  .add-btn {
+    background-color: #de411b;
+  }
+  
+  .main-content-component {
+    margin-bottom: 40px;
+  }
+  
+  .quantity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+  }
+  
+  .quantity button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .ticket-quantity {
+    width: 40px;
+    text-align: center;
+    margin-top: 5px;
+  }
+  
+  .ticket-type {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  /* Additional styles for the Place Order button */
+  .place-order-btn {
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+
+
+  .order-card {
+    width: 100%;
+    margin: 10px 0;
+    padding: 15px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    background-color: #ffffff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  
+  .order-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  
+  .delete-button,
+  .edit-button {
+    background-color: #de411b;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .delete-button {
+    background-color: red;
+    margin-right: 10px;
+  }
+  /* Autocomplete dropdown styles */
+.autocomplete-dropdown {
+    position: absolute;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    background-color: #fff;
+  }
+  .autocomplete-item {
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+  .autocomplete-item:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .search-bar {
+    margin-top: 10px;
+    width: 100%; /* Take up the full width of the container */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  /* Autocomplete dropdown styles */
+  .autocomplete-dropdown {
+    /* ... (previous styles) ... */
+    /* Adjust the width and margin-top as needed */
+    width: 100%; /* Take up the full width of the container */
+    margin-top: 5px;
+  }

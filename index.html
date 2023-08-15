@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./src/styles.css">
+  <link rel="stylesheet" href="./style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap" rel="stylesheet">
+  <style>
+    /* Adjust mobile menu visibility */
+    .hidden-mobile {
+      display: none;
+    }
+
+    /* Additional styles for the search bar */
+    .search-bar {
+      margin-top: 10px;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    /* Autocomplete dropdown styles */
+    .autocomplete-dropdown {
+      position: absolute;
+      width: 100%;
+      margin-top: 5px;
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+    }
+    .autocomplete-item {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+    .autocomplete-item:hover {
+      background-color: #f0f0f0;
+    }
+    /* ... (your other styles) ... */
+  </style>
+  <title>Ticket Management</title>
+</head>
+<body>
+  <header id="page-header">
+    <nav class="container mx-auto px-4 py-2 flex items-center justify-between">
+      <div>
+        <input
+          type="text"
+          id="eventSearch"
+          placeholder="Search events..."
+          class="search-bar"
+          autocomplete="off"
+        />
+      </div>
+      <div class="md:block">
+        <ul class="flex space-x-4">
+          <li>
+            <a href="/" class="text-white hover:text-black text-lg font-bold link-item">Home</a>
+          </li>
+          <li>
+            <a href="/orders" class="text-white hover:text-black text-lg font-bold link-item">Orders</a>
+          </li>
+        </ul>
+      </div>
+      <div class="w-16 flex justify-end pr-2">
+        <div class="md:hidden">
+          <button type="button" class="text-gray-700 hover:text-blue-950 focus:outline-none focus:text-blue-950" id="mobileMenuBtn" aria-label="mobile menu">
+            <i class="fa-solid fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </nav>
+    <div class="hidden-mobile md:hidden" id="mobileMenu">
+      <ul class="bg-gray-700 rounded-md text-white">
+        <li>
+          <a href="/" class="block px-4 py-2 hover:bg-gray-600">Home</a>
+        </li>
+        <li>
+          <a href="/orders" class="block px-4 py-2 hover:bg-gray-600">Orders</a>
+        </li>
+      </ul>
+    </div>
+  </header>
+  <main class="main-content-component">
+    <div id="content">
+      <h1 class="text-2xl font-bold text-center mt-4">Upcoming Events</h1>
+      <!-- Autocomplete dropdown -->
+      <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+      <!-- Event cards -->
+      <div class="events flex items-center justify-center flex-wrap mt-4"></div>
+    </div>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
