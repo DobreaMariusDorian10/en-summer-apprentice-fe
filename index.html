@@ -91,8 +91,27 @@
       <!-- Autocomplete dropdown -->
       <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
       <!-- Event cards -->
-      <div class="events flex items-center justify-center flex-wrap mt-4"></div>
+      <div class="events flex items-center justify-center flex-wrap mt-4"></div>    
     </div>
+    <div id="content">
+        
+        <!-- Autocomplete dropdown for locations -->
+        <input
+          type="text"
+          id="eventSearch"
+          placeholder="Search events..."
+          class="search-bar"
+          autocomplete="off"
+        />
+        <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+      
+        <!-- Dropdown menu for event locations -->
+        <label for="locationFilter">Filter by Location:</label>
+        <select id="locationFilter">
+          <option value="">All Locations</option>
+          <!-- Populate dropdown options dynamically using JavaScript -->
+        </select>
+        
   </main>
   <script type="module" src="./main.js"></script>
 </body>

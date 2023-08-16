@@ -5,15 +5,37 @@ function navigateTo(url) {
   }
   
   // HTML templates
-  function getHomePageTemplate() {
+  function getHomePageTemplate(locations, eventTypes) {
+    const locationOptions = locations.map(location => `<option value="${location}">${location}</option>`).join('');
+    const eventTypeOptions = eventTypes.map(eventType => `<option value="${eventType}">${eventType}</option>`).join('');
+    
     return `
       <div id="content">
-        <img src="./src/assets/Endava.png" alt="summer">
         <h1 class="text-2xl font-bold text-center mt-4">Upcoming Events</h1>
+        <div class="location-filter">
+          <label for="locationFilter">Filter by Location:</label>
+          <select id="locationFilter">
+            <option value="">All Locations</option>
+            ${locationOptions}
+          </select>
+        </div>
+        <div class="event-type-filter">
+          <label for="eventTypeFilter">Filter by Event Type:</label>
+          <select id="eventTypeFilter">
+            <option value="">All Event Types</option>
+            ${eventTypeOptions}
+          </select>
+        </div>
+        <!-- Autocomplete dropdown -->
+        <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
+        <!-- Event cards -->
         <div class="events flex items-center justify-center flex-wrap mt-4"></div>
       </div>
     `;
   }
+  
+  
+  
   
   function getOrdersPageTemplate() {
     return `
@@ -25,22 +47,54 @@ function navigateTo(url) {
   }
   
   let eventData = []; // Define eventData in a higher scope
+  let selectedLocation = '';
+let selectedEventType = '';
   // Render events
   async function renderHomePage() {
     const mainContentDiv = document.querySelector('.main-content-component');
-    mainContentDiv.innerHTML = getHomePageTemplate();
   
     try {
-      eventData = await fetchTicketEvents(); // Assign fetched data to eventData
-      addEvents(eventData);
+      eventData = await fetchTicketEvents();
+      const locations = [...new Set(eventData.map(event => event.venue.locationName))];
+      const eventTypes = [...new Set(eventData.map(event => event.type))];
+  
+      mainContentDiv.innerHTML = getHomePageTemplate(locations, eventTypes) + mainContentDiv.innerHTML;
+  
+      // Setup event type filter
+      const eventTypeFilter = document.getElementById('eventTypeFilter');
+      eventTypeFilter.addEventListener('change', () => {
+        selectedEventType = eventTypeFilter.value;
+        filterEvents(); // Call the combined filter function
+      });
+  
+      // Setup location filter
+      const locationFilter = document.getElementById('locationFilter');
+      locationFilter.addEventListener('change', () => {
+        selectedLocation = locationFilter.value;
+        filterEvents(); // Call the combined filter function
+      });
+  
+      // Setup search input filter
+      const searchInput = document.getElementById('eventSearch');
+      searchInput.addEventListener('input', (event) => {
+        const searchTerm = event.target.value;
+        filterEventsBySearch(searchTerm, eventData); // Pass eventData here
+      });
+  
+      // Apply initial filters and add events
+      filterEvents();
     } catch (error) {
       console.error('Error fetching event data:', error);
       mainContentDiv.innerHTML = '<p>Error fetching event data</p>';
     }
   
-    async function fetchTicketEvents() {
+    async function fetchTicketEvents(selectedEventType) {
       try {
-        const response = await fetch('http://localhost:8080/api/getAllEvents');
+        let url = 'http://localhost:8080/api/getAllEvents';
+        if (selectedEventType) {
+          url = `http://localhost:8080/api/getEventsByEventType?eventType=${selectedEventType}`;
+        }
+        const response = await fetch(url);
         const data = await response.json();
         return data;
       } catch (error) {
@@ -49,11 +103,16 @@ function navigateTo(url) {
     }
   }
   
+  
   // Add events to the DOM
  const addEvents = (events) => {
   const eventsDiv = document.querySelector('.events');
   eventsDiv.innerHTML = '';
-
+  const locationFilter = document.getElementById('locationFilter');
+  locationFilter.addEventListener('change', () => {
+    const selectedLocation = locationFilter.value;
+    filterEventsByLocation(selectedLocation);
+  });
   if (events.length) {
     events.forEach(event => {
       eventsDiv.appendChild(createEvent(event));
@@ -80,8 +139,9 @@ const createEvent = (eventData) => {
         <h2 class="event-title">${eventData.eventName}</h2>
         <p class="event-description">${eventData.eventDescription}</p>
         <p class="event-date">${new Date(eventData.eventStartDate).toDateString()}</p>
-        <p class="event-end-date">${new Date(eventData.getEventEndDate).toDateString()}</p>
+        <p class="event-end-date">${new Date(eventData.eventEndDate).toDateString()}</p>
         <p class="event-location">${eventData.venue.locationName}</p>
+        <p class="event-type">${eventData.type}</p> <!-- Add event type here -->
       </div>
       <div class="quantity">
         <div class="quantity-buttons">
@@ -114,37 +174,38 @@ const createEvent = (eventData) => {
     incrementButton.addEventListener('click', () => {
       ticketQuantityInput.value = parseInt(ticketQuantityInput.value) + 1;
     });
-   placeOrderButton.addEventListener('click', async () => {
-    if (isPlacingOrder) {
+
+    placeOrderButton.addEventListener('click', async () => {
+      if (isPlacingOrder) {
         return; // Exit if an order is already being placed
-    }
-
-    isPlacingOrder = true;
-
-    try {
-        const eventID = eventCard.getAttribute('data-event-id');
-        const ticketTypeSelect = eventCard.querySelector('.ticket-type');
-        const numberOfTickets = eventCard.querySelector('.ticket-quantity').value;
+      }
+  
+      isPlacingOrder = true;
+  
+      try {
+        const eventID = eventElement.getAttribute('data-event-id');
+        const ticketTypeSelect = eventElement.querySelector('.ticket-type');
+        const numberOfTickets = eventElement.querySelector('.ticket-quantity').value;
         const ticketCategoryDescription = ticketTypeSelect.value;
-
+  
         // Log the request body
         const requestBody = {
-            eventID: eventID, // Use the extracted eventID
-            ticketCategoryDescription: ticketCategoryDescription,
-            numberOfTickets: numberOfTickets
+          eventID: eventID,
+          ticketCategoryDescription: ticketCategoryDescription,
+          numberOfTickets: numberOfTickets
         };
         console.log('Request Body:', JSON.stringify(requestBody));
-
+  
         // Call the function to place the order
         await placeNewOrder(eventID, ticketCategoryDescription, numberOfTickets);
-    } finally {
+      } finally {
         isPlacingOrder = false;
-    }
-});
+      }
+    });
 
-    
-      return eventElement;
-    };
+    return eventElement;
+};
+
   
 
 
@@ -407,7 +468,64 @@ searchInput.addEventListener('input', (event) => {
   filterEventsBySearch(searchTerm, eventData); // Pass eventData here
 });
 
+function filterEvents() {
+    let filteredEvents = eventData;
+  
+    if (selectedLocation) {
+      filteredEvents = filteredEvents.filter(event => event.venue.locationName === selectedLocation);
+    }
+  
+    if (selectedEventType) {
+      filteredEvents = filteredEvents.filter(event => event.type === selectedEventType);
+    }
+  
+    addEvents(filteredEvents);
+  }
 
+document.addEventListener('DOMContentLoaded', () => {
+    // ...
+  
+    const locationFilter = document.getElementById('locationFilter');
+    locationFilter.addEventListener('change', () => {
+      selectedLocation = locationFilter.value;
+      filterEventsByLocation(selectedLocation); // Call the new filter function
+    });
+  
+    const eventTypeFilter = document.getElementById('eventTypeFilter');
+    eventTypeFilter.addEventListener('change', () => {
+      selectedEventType = eventTypeFilter.value;
+      filterEvents();
+    });
+    // ...
+  });
+  
+  async function filterEventsByLocation(selectedLocation) {
+    try {
+      const response = await fetch(`http://localhost:8080/api/getEventsByVenueLocation?locationName=${selectedLocation}`);
+      const filteredEvents = await response.json();
+  
+      // Check if a specific event type is also selected
+      if (selectedEventType) {
+        const eventsFilteredByEventType = filteredEvents.filter(event => event.type === selectedEventType);
+        addEvents(eventsFilteredByEventType);
+      } else {
+        addEvents(filteredEvents);
+      }
+    } catch (error) {
+      console.error('Error fetching filtered events:', error);
+    }
+  }
+  
+  function filterEventsByEventType(selectedEventType) {
+    const filteredEvents = eventData.filter(event => {
+      return selectedEventType ? event.type === selectedEventType : true;
+    });
+  
+    addEvents(filteredEvents);
+  }
+  
+  
+  
   
 // Call the setup functions
 setupNavigationEvents();
