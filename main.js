@@ -218,10 +218,15 @@ const createEvent = (eventData) => {
       link.addEventListener('click', (event) => {
         event.preventDefault();
         const href = link.getAttribute('href');
-        navigateTo(href);
+        if (href === '/') {
+          selectedLocation = ''; // Reset selectedLocation when navigating to Home
+          selectedEventType = ''; // Reset selectedEventType when navigating to Home
+        }
+        renderContent(href);
       });
     });
   }
+  
   
   // Setup mobile menu event
   function setupMobileMenuEvent() {
@@ -249,17 +254,17 @@ const createEvent = (eventData) => {
     renderContent(initialUrl);
   }
   
-  // Render content based on URL
-  function renderContent(url) {
+  function renderContent(url, filterState) {
     const mainContentDiv = document.querySelector('.main-content-component');
     mainContentDiv.innerHTML = '';
   
     if (url === '/') {
-      renderHomePage();
+      renderHomePage(filterState);
     } else if (url === '/orders') {
       renderOrdersPage();
     }
   }
+  
 
   const eventImageMapping = {
     1: './src/assets/event1.jpg',
@@ -298,11 +303,11 @@ const createEvent = (eventData) => {
   const addOrders = (orders) => {
     const ordersDiv = document.querySelector('.orders');
     ordersDiv.innerHTML = '';
-  
+    
     if (orders.length) {
-      const reversedOrders = orders.slice().reverse(); // Reverse the order of the array
+      const reversedOrders = orders.slice().reverse();
       reversedOrders.forEach((order, index) => {
-        const orderNumber = orders.length - index; // Calculate the order number in reverse
+        const orderNumber = orders.length - index;
         ordersDiv.appendChild(createOrderCard(order, orderNumber));
       });
     } else {
@@ -310,40 +315,46 @@ const createEvent = (eventData) => {
     }
   };
   
+  
   const createOrderCard = (orderData, orderNumber) => {
     const orderElement = document.createElement('div');
     orderElement.classList.add('order-card');
+    
+    orderElement.setAttribute('data-order-number', orderNumber);
   
     const contentMarkup = `
       <h2 class="order-title">Order number ${orderNumber}</h2>
       <p class="order-details">Event ID: ${orderData.eventID}</p>
       <p class="order-details">Ordered At: ${new Date(orderData.orderedAt).toLocaleString()}</p>
       <p class="order-details">Number of Tickets: ${orderData.numberOfTickets}</p>
+      <p class="order-details">Ticket Type: ${orderData.ticketCategoryDTO.description}</p>
       <p class="order-details">Total Price: ${orderData.totalPrice}</p>
       <div class="order-buttons">
-        <button class="delete-button">Sterge</button>
-        <button class="edit-button">Modifica</button>
+        <button class="delete-button">Delete</button>
+        <button class="edit-button">Edit</button>
       </div>
     `;
-  
+    
     orderElement.innerHTML = contentMarkup;
   
     const deleteButton = orderElement.querySelector('.delete-button');
     const editButton = orderElement.querySelector('.edit-button');
   
-    // Add event listeners for delete and edit buttons
-    deleteButton.addEventListener('click', () => {
-      // Handle delete button click for the corresponding order
-      console.log(`Delete order with ID: ${orderData.orderID}`);
+    deleteButton.addEventListener('click', async () => {
+      const orderNumber = orderElement.getAttribute('data-order-number');
+      await deleteOrder(orderNumber);
+  
+      // Optional: Remove the deleted order card from the DOM
+      orderElement.remove();
     });
   
-    editButton.addEventListener('click', () => {
-      // Handle edit button click for the corresponding order
-      console.log(`Edit order with ID: ${orderData.orderID}`);
-    });
-  
+    // Add event listener for edit button here
+    
     return orderElement;
   };
+  
+  
+
 // Function to create the response body for a new order
 const createNewOrderResponse = (eventID, ticketCategoryDescription, numberOfTickets) => {
     return {
@@ -523,6 +534,29 @@ document.addEventListener('DOMContentLoaded', () => {
   
     addEvents(filteredEvents);
   }
+  const deleteOrder = async (orderNumber) => {
+    try {
+        console.log('Deleting order:', orderNumber);
+        const response = await fetch(`http://localhost:8080/api/deleteOrder/${orderNumber}`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            console.log('Order deleted successfully:', orderNumber);
+            // Optionally, you can remove the deleted order card from the DOM
+            const orderCardToRemove = document.querySelector(`[data-order-number="${orderNumber}"]`);
+            if (orderCardToRemove) {
+                orderCardToRemove.remove();
+            }
+        } else {
+            console.error('Error deleting order:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error deleting order:', error);
+    }
+};
+
+
   
   
   
