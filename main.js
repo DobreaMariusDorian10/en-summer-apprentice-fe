@@ -1,3 +1,5 @@
+import { createOrderCard } from "./components/createOrderCard";
+
 // Navigate to a specific URL
 function navigateTo(url) {
     history.pushState(null, null, url);
@@ -54,11 +56,11 @@ let selectedEventType = '';
     const mainContentDiv = document.querySelector('.main-content-component');
   
     try {
-      eventData = await fetchTicketEvents();
+      eventData = await fetchTicketEvents(); // Fetch all events
       const locations = [...new Set(eventData.map(event => event.venue.locationName))];
       const eventTypes = [...new Set(eventData.map(event => event.type))];
   
-      mainContentDiv.innerHTML = getHomePageTemplate(locations, eventTypes) + mainContentDiv.innerHTML;
+      mainContentDiv.innerHTML = getHomePageTemplate(locations, eventTypes);
   
       // Setup event type filter
       const eventTypeFilter = document.getElementById('eventTypeFilter');
@@ -74,34 +76,24 @@ let selectedEventType = '';
         filterEvents(); // Call the combined filter function
       });
   
-      // Setup search input filter
-      const searchInput = document.getElementById('eventSearch');
-      searchInput.addEventListener('input', (event) => {
-        const searchTerm = event.target.value;
-        filterEventsBySearch(searchTerm, eventData); // Pass eventData here
-      });
-  
       // Apply initial filters and add events
       filterEvents();
     } catch (error) {
       console.error('Error fetching event data:', error);
       mainContentDiv.innerHTML = '<p>Error fetching event data</p>';
     }
+  }
   
-    async function fetchTicketEvents(selectedEventType) {
-      try {
-        let url = 'http://localhost:8080/api/getAllEvents';
-        if (selectedEventType) {
-          url = `http://localhost:8080/api/getEventsByEventType?eventType=${selectedEventType}`;
-        }
-        const response = await fetch(url);
-        const data = await response.json();
-        return data;
-      } catch (error) {
-        throw new Error('Error fetching event data');
-      }
+  async function fetchTicketEvents() {
+    try {
+      const response = await fetch('http://localhost:8080/api/getAllEvents');
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw new Error('Error fetching event data');
     }
   }
+  
   
   
   // Add events to the DOM
@@ -125,23 +117,22 @@ let selectedEventType = '';
 const createEvent = (eventData) => {
     const eventElement = document.createElement('div');
     eventElement.classList.add('event-card');
-  
+
     // Add a data-event-id attribute to store the event ID
     eventElement.setAttribute('data-event-id', eventData.eventID);
-  
+
     const imagePath = eventImageMapping[eventData.eventID];
-  
+
     const contentMarkup = `
       <div class="event-image-container">
         <img src="${imagePath}" alt="${eventData.eventName}" class="event-image">
       </div>
       <div class="event-details">
-        <h2 class="event-title">${eventData.eventName}</h2>
-        <p class="event-description">${eventData.eventDescription}</p>
-        <p class="event-date">${new Date(eventData.eventStartDate).toDateString()}</p>
-        <p class="event-end-date">${new Date(eventData.eventEndDate).toDateString()}</p>
-        <p class="event-location">${eventData.venue.locationName}</p>
-        <p class="event-type">${eventData.type}</p> <!-- Add event type here -->
+      <h2 class="event-title">${eventData.eventName}</h2>
+      <p class="event-description">${eventData.eventDescription}</p>
+      <p class="event-date">Start Date: ${formatDate(eventData.eventStartDate)}</p>
+      <p class="event-end-date">End Date: ${formatEndDate(eventData.getEventEndDate)}</p> <!-- Change this line -->
+      <p class="event-location">${eventData.venue.locationName}</p>
       </div>
       <div class="quantity">
         <div class="quantity-buttons">
@@ -156,55 +147,73 @@ const createEvent = (eventData) => {
         <button class="place-order-btn">Place Order</button>
       </div>
     `;
-  
+
     eventElement.innerHTML = contentMarkup;
-  
+
     const decrementButton = eventElement.querySelector('.decrement-button');
     const incrementButton = eventElement.querySelector('.increment-button');
     const ticketQuantityInput = eventElement.querySelector('.ticket-quantity');
     const ticketTypeSelect = eventElement.querySelector('.ticket-type');
     const placeOrderButton = eventElement.querySelector('.place-order-btn');
-  
+
     decrementButton.addEventListener('click', () => {
-      if (ticketQuantityInput.value > 0) {
-        ticketQuantityInput.value = parseInt(ticketQuantityInput.value) - 1;
-      }
+        if (ticketQuantityInput.value > 0) {
+            ticketQuantityInput.value = parseInt(ticketQuantityInput.value) - 1;
+        }
     });
-  
+
     incrementButton.addEventListener('click', () => {
-      ticketQuantityInput.value = parseInt(ticketQuantityInput.value) + 1;
+        ticketQuantityInput.value = parseInt(ticketQuantityInput.value) + 1;
     });
 
     placeOrderButton.addEventListener('click', async () => {
-      if (isPlacingOrder) {
-        return; // Exit if an order is already being placed
-      }
-  
-      isPlacingOrder = true;
-  
-      try {
-        const eventID = eventElement.getAttribute('data-event-id');
-        const ticketTypeSelect = eventElement.querySelector('.ticket-type');
-        const numberOfTickets = eventElement.querySelector('.ticket-quantity').value;
-        const ticketCategoryDescription = ticketTypeSelect.value;
-  
-        // Log the request body
-        const requestBody = {
-          eventID: eventID,
-          ticketCategoryDescription: ticketCategoryDescription,
-          numberOfTickets: numberOfTickets
-        };
-        console.log('Request Body:', JSON.stringify(requestBody));
-  
-        // Call the function to place the order
-        await placeNewOrder(eventID, ticketCategoryDescription, numberOfTickets);
-      } finally {
-        isPlacingOrder = false;
-      }
+        if (isPlacingOrder) {
+            return; // Exit if an order is already being placed
+        }
+
+        isPlacingOrder = true;
+
+        try {
+            const eventID = eventElement.getAttribute('data-event-id');
+            const ticketTypeSelect = eventElement.querySelector('.ticket-type');
+            const numberOfTickets = eventElement.querySelector('.ticket-quantity').value;
+            const ticketCategoryDescription = ticketTypeSelect.value;
+
+            // Log the request body
+            const requestBody = {
+                eventID: eventID,
+                ticketCategoryDescription: ticketCategoryDescription,
+                numberOfTickets: numberOfTickets
+            };
+            console.log('Request Body:', JSON.stringify(requestBody));
+
+            // Call the function to place the order
+            await placeNewOrder(eventID, ticketCategoryDescription, numberOfTickets);
+        } finally {
+            isPlacingOrder = false;
+        }
     });
 
     return eventElement;
 };
+
+// Function to format a date as "Month Day, Year"
+const formatDate = (dateString) => {
+    if (!dateString) {
+        return 'Date not available';
+    }
+
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+};
+const formatEndDate = (dateString) => {
+    if (!dateString) {
+        return 'Date not available';
+    }
+
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+};  
 
   
 
@@ -314,126 +323,7 @@ const createEvent = (eventData) => {
     }
 };
 
-  
-// ... (previous code)
-
-const createOrderCard = (orderData, orderNumber) => {
-    const orderElement = document.createElement('div');
-    orderElement.classList.add('order-card');
-  
-    orderElement.setAttribute('data-order-number', orderNumber);
-  
-    const formattedTotalPrice = '$' + orderData.totalPrice;
-  
-    const contentMarkup = `
-      <h2 class="order-title">Order number ${orderNumber}</h2>
-      <p class="order-details">Event ID: ${orderData.eventID}</p>
-      <p class="order-details">Ordered At: ${new Date(orderData.orderedAt).toLocaleString()}</p>
-      <p class="order-details">Number of Tickets: <span class="editable-tickets">${orderData.numberOfTickets}</span></p>
-      <p class="order-details">Ticket Type: <span class="editable-type">${orderData.ticketCategoryDTO.description}</span></p>
-      <p class="order-details">Total Price: <span class="editable-total-price">${formattedTotalPrice}</span></p>
-      <div class="order-buttons">
-        <button class="delete-button">Sterge</button>
-        <button class="save-button" style="display: none;">Salveaza</button>
-        <button class="edit-button">Modifica</button>
-      </div>
-    `;
-  
-    orderElement.innerHTML = contentMarkup;
-  
-    const deleteButton = orderElement.querySelector('.delete-button');
-    const saveButton = orderElement.querySelector('.save-button');
-    const editButton = orderElement.querySelector('.edit-button');
-    const editableTickets = orderElement.querySelector('.editable-tickets');
-    const editableType = orderElement.querySelector('.editable-type');
-    const editableTotalPrice = orderElement.querySelector('.editable-total-price');
-  
-    // Initialize editable state
-    let isEditable = false;
-  
-    deleteButton.addEventListener('click', async () => {
-      const orderNumber = orderElement.getAttribute('data-order-number');
-      await deleteOrder(orderNumber);
-  
-      // Optionally, remove the deleted order card from the DOM
-      orderElement.remove();
-    });
-  
-    editButton.addEventListener('click', () => {
-      if (!isEditable) {
-        isEditable = true;
-  
-        // Replace the ticket quantity with an input field
-        editableTickets.innerHTML = `<input type="number" class="edited-quantity" value="${orderData.numberOfTickets}" />`;
-  
-        // Replace the ticket type with a dropdown
-        editableType.innerHTML = `
-          <select class="edited-type">
-            <option value="Standard" ${orderData.ticketCategoryDTO.description === 'Standard' ? 'selected' : ''}>Standard</option>
-            <option value="VIP" ${orderData.ticketCategoryDTO.description === 'VIP' ? 'selected' : ''}>VIP</option>
-          </select>
-        `;
-  
-        // Display the "Salveaza" button
-        saveButton.style.display = 'block';
-      }
-    });
-  
-    // ...
-
-    saveButton.addEventListener('click', async () => {
-        if (isEditable) {
-          isEditable = false;
-          const editedQuantity = orderElement.querySelector('.edited-quantity').value;
-          const editedType = orderElement.querySelector('.edited-type').value;
-          const orderID = orderElement.getAttribute('data-order-number');
-      
-          const patchData = {
-            orderID: parseInt(orderID),
-            ticketCategoryDescription: editedType,
-            nrTickets: parseInt(editedQuantity)
-          };
-      
-          try {
-            const response = await fetch('http://localhost:8080/api/patchOrder', {
-              method: 'PATCH',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(patchData)
-            });
-      
-            if (response.ok) {
-              const updatedOrderData = await response.json();
-              
-              // Update the order data in memory
-              orderData.numberOfTickets = parseInt(editedQuantity);
-              orderData.ticketCategoryDTO.description = editedType;
-              orderData.totalPrice = updatedOrderData.totalPrice; // Update the total price here
-      
-              // Update the order card content with the edited data
-              editableTickets.textContent = editedQuantity;
-              editableType.textContent = editedType;
-              editableTotalPrice.textContent = '$' + updatedOrderData.totalPrice; // Update total price display with "$"
-      
-              // Hide the "Salveaza" button
-              saveButton.style.display = 'none';
-            } else {
-              console.error('Error updating order:', response.statusText);
-            }
-          } catch (error) {
-            console.error('Error updating order:', error);
-          }
-        }
-    });
-    
-  
-  // ...
-  
-    // Rest of the event listeners and code...
-  
-    return orderElement;
-  };
+ 
   
 
   

@@ -88,14 +88,9 @@
   <main class="main-content-component">
     <div id="content">
       <h1 class="text-2xl font-bold text-center mt-4">Upcoming Events</h1>
-      <!-- Autocomplete dropdown -->
-      <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
-      <!-- Event cards -->
-      <div class="events flex items-center justify-center flex-wrap mt-4"></div>    
-    </div>
-    <div id="content">
-        
-        <!-- Autocomplete dropdown for locations -->
+    
+      <!-- Search bar -->
+      <div class="search-bar-container flex justify-center mt-4">
         <input
           type="text"
           id="eventSearch"
@@ -103,16 +98,34 @@
           class="search-bar"
           autocomplete="off"
         />
+      </div>
+    
+      <!-- Filters -->
+      <div class="search-filters-container flex items-center justify-center space-x-4 mt-4">
+        <!-- Autocomplete dropdown for locations -->
         <div id="autocompleteDropdown" class="autocomplete-dropdown"></div>
-      
+    
         <!-- Dropdown menu for event locations -->
         <label for="locationFilter">Filter by Location:</label>
         <select id="locationFilter">
           <option value="">All Locations</option>
           <!-- Populate dropdown options dynamically using JavaScript -->
         </select>
-        
+    
+        <!-- Dropdown menu for event types -->
+        <label for="eventTypeFilter">Filter by Event Type:</label>
+        <select id="eventTypeFilter">
+          <option value="">All Event Types</option>
+          <!-- Populate dropdown options dynamically using JavaScript -->
+        </select>
+      </div>
+    
+      <!-- Event cards -->
+      <div class="events flex items-center justify-center flex-wrap mt-4"></div>
+    </div>
   </main>
+  
+   
   <script type="module" src="./main.js"></script>
 </body>
 </html>

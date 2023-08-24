@@ -215,3 +215,8 @@ body {
     display: none; /* Hide the button by default */
   }
   
+  .search-bar-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
